@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  flask:
+    build: .
+    container_name: flask_app
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - .:/app
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile-celery
+    container_name: celery_worker
+    depends_on:
+      - redis
+    volumes:
+      - .:/app
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  db:
+    image: postgres:13
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: your_database
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+
+volumes:
+  postgres_data:
