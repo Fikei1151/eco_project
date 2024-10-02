@@ -1,53 +1,97 @@
-version: '3'
 
 services:
-  flask:
-    build: .
-    container_name: flask_app
-    ports:
-      - "5000:5000"
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - .:/app
-
-  celery:
-    build:
-      context: .
-      dockerfile: Dockerfile-celery
-    container_name: celery_worker
-    depends_on:
-      - redis
-    volumes:
-      - .:/app
-
   redis:
-    image: redis:alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-
-  db:
-    image: postgres:13
-    container_name: postgres_db
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: your_database
+    image: redis/redis-stack-server
+    container_name: pipek-redis
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - redis_data:/data
+    restart: always
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  postgresql:
+    image: postgres:16
+    container_name: pipek-postgresql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 60s
+      retries: 5
+      timeout: 5s
     ports:
       - "5432:5432"
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    build: .
+    image: pipek-image
+    container_name: pipek-web
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
     ports:
-      - "5050:80"
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_started
+      postgresql:
+        condition: service_healthy
+    networks:
+      - default
+    restart: always
+    environment:
+      PIPEK_ENV: /app/.env.dev
+      REDIS_URL: redis://redis:6379/0
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    env_file:
+      - .env.dev
+    command: /app/scripts/pipek-dash
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  worker:
+    build: .
+    image: pipek-image
+    container_name: pipek-worker
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      redis:
+        condition: service_started
+      postgresql:
+        condition: service_healthy
+    networks:
+      - default
+    restart: always
+    environment:
+      PIPEK_ENV: /app/.env.dev
+      REDIS_URL: redis://redis:6379/0
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    env_file:
+      - .env.dev
+    command: /app/scripts/pipek-worker
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
-  postgres_data:
+  redis_data:
+  postgresql_data:

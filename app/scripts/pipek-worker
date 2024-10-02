@@ -1,0 +1,8 @@
+#!/bin/bash
+# สคริปต์สำหรับรัน worker
+
+# เปิดใช้งาน virtual environment
+source /venv/bin/activate
+
+# รัน RQ worker
+exec rq worker --url redis://redis:6379

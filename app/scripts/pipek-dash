@@ -1,0 +1,8 @@
+#!/bin/bash
+source /venv/bin/activate
+cd /app
+exec gunicorn --bind 0.0.0.0:8080 'app:create_app()' \
+    --log-level debug \
+    --reload \
+    --chdir /app \
+    --pythonpath /app
