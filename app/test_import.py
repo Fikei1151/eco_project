@@ -1,13 +1,24 @@
-# import os
-# import sys
+# test_import.py
 
-# # ไม่จำเป็นต้องปรับ sys.path อีกต่อไป
 
-# print("sys.path:", sys.path)
+def main():
+    try:
+        # พยายามนำเข้าโมดูล process_image
+        from worker.tasks_module import process_image
 
-# try:
-#     from app.worker.tasks_module import process_image
+        print("Successfully imported 'process_image' from 'app.worker.tasks_module'.")
 
-#     print("Import successful.")
-# except ImportError as e:
-#     print(f"Import failed: {e}")
+        # เรียกใช้ฟังก์ชันเพื่อทดสอบ
+        process_image("/app/app/static/uploads/test1.jpg")
+        print("Function 'process_image' executed successfully.")
+
+    except ImportError as ie:
+        print(f"ImportError: {ie}")
+    except AttributeError as ae:
+        print(f"AttributeError: {ae}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+
+if __name__ == "__main__":
+    main()

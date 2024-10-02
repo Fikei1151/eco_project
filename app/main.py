@@ -58,7 +58,8 @@ def index():
 
             image.save(image_path)
 
-            q.enqueue("app.worker.tasks_module.process_image", image_path)
+            q.enqueue("worker.tasks_module.process_image", image_path)
+
             return redirect(url_for("main.index"))
         else:
             flash(
