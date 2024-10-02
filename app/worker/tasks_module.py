@@ -12,13 +12,14 @@ import face_recognition
 app = create_app()
 app.app_context().push()
 
+
 def process_image(image_path):
     # โหลดภาพ
     image = cv2.imread(image_path)
     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     # ตรวจจับใบหน้า
     faces = detect_faces(image)
-    for (x1, y1, x2, y2) in faces:
+    for x1, y1, x2, y2 in faces:
         face_image = rgb_image[y1:y2, x1:x2]
         # ได้รับ face encodings
         face_encodings = get_face_encodings(face_image)
@@ -36,7 +37,7 @@ def process_image(image_path):
                 user = users[first_match_index]
             else:
                 # ถ้าไม่มี ให้สร้างผู้ใช้ใหม่ (ในที่นี้ใช้ชื่อ 'Unknown')
-                user = User(name='Unknown', face_encoding=face_encoding)
+                user = User(name="Unknown", face_encoding=face_encoding)
                 db.session.add(user)
                 db.session.commit()
             # ตรวจจับอารมณ์

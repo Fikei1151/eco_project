@@ -1,0 +1,35 @@
+<!-- templates/identify.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Identify Users</title>
+</head>
+
+<body>
+    <h1>Identify Unknown Users</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul class="flashes">
+        {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    {% for user in users %}
+    <div style="margin-bottom: 20px;">
+        <img src="{{ url_for('static', filename='unknown_faces/' + user.image_path) }}" alt="User Image" width="200">
+        <form method="POST" action="{{ url_for('main.identify') }}">
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+            <input type="text" name="name" placeholder="Enter name" required>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    {% endfor %}
+</body>
+
+</html>

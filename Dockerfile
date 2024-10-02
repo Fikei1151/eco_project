@@ -5,10 +5,12 @@ WORKDIR /app
 
 # คัดลอกไฟล์จำเป็นไปยังคอนเทนเนอร์
 COPY ./app /app/app
-COPY ./worker /app/worker
+# COPY ./worker /app/worker
 COPY ./controller /app/controller
 COPY requirements.txt /app/requirements.txt
 COPY ./app/scripts /app/scripts
+RUN mkdir -p /app/app/static/uploads && chmod -R 755 /app/app/static/uploads
+
 
 
 # ติดตั้ง dependencies ที่จำเป็น รวมถึง 'file' และ 'bash'
